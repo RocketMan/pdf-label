@@ -1,0 +1,26 @@
+{
+    "name": "rocketman/pdf-label",
+    "description": "This class is a modified version of PDF_Label that adds support for unicode and ttf.",
+    "license": "LGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Jim Mason",
+            "email": "jmason@ibinx.com"
+        },
+        {
+            "name": "Laurent PASSEBECQ (LPA)"
+        },
+        {
+            "name": "Steve Dillon"
+        }
+    ],
+    "type": "library",
+    "autoload": {
+	"classmap": [
+	    "src/PDF_Label.php"
+	]
+    },
+    "require": {
+        "setasign/tfpdf": "^1.32"
+    }
+}
