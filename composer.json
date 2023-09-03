@@ -16,13 +16,13 @@
         {
             "name": "Nicola Asuni",
             "email": "info@tecnick.com"
-        },
+        }
     ],
     "type": "library",
     "autoload": {
         "classmap": [
             "src/PDF_Label.php",
-            "src/qrcode.php",
+            "src/qrcode.php"
         ]
     },
     "require": {
