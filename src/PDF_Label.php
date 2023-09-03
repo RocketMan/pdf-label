@@ -6,7 +6,7 @@
 //
 // Create labels in Avery or custom formats with support for unicode and ttf
 //
-// Copyright (C) 2021 Jim Mason
+// Copyright (C) 2021-2023 Jim Mason
 // Copyright (C) 2003 Laurent PASSEBECQ (LPA)
 // Based on code by Steve Dillon
 //
@@ -43,12 +43,14 @@
 // 1.6+rocketman.1:
 //      + Migrated from FPDF to tFPDF (for unicode and ttf)
 //      + Added optional orientation property to format descriptor
+// 1.6+rocketman.2:
+//      + Added new methods `currentLabel` and `writeQRCode`
 //////////////////////////////////////////////////////////////////////////////
 
 /**
  * PDF_Label - PDF label maker with support for unicode and ttf
  * @author Jim Mason
- * @copyright 2021 Jim Mason
+ * @copyright 2021-2023 Jim Mason
  * @author Laurent PASSEBECQ
  * @copyright 2003 Laurent PASSEBECQ
  * @license https://www.gnu.org/licenses/lgpl-3.0.html
@@ -68,6 +70,8 @@ class PDF_Label extends tFPDF {
     protected $_Metric_Doc;         // Type of metric for the document
     protected $_COUNTX;             // Current x position
     protected $_COUNTY;             // Current y position
+    protected $_PosX;               // tFPDF x origin for current label
+    protected $_PoxY;               // tFPDF y origin for current label
 
     // List of label formats
     protected $_Avery_Labels = array(
@@ -194,14 +198,72 @@ class PDF_Label extends tFPDF {
             }
         }
 
-        $_PosX = $this->_Margin_Left + $this->_COUNTX*($this->_Width+$this->_X_Space) + $this->_Padding;
-        $_PosY = $this->_Margin_Top + $this->_COUNTY*($this->_Height+$this->_Y_Space) + $this->_Padding;
-        $this->SetXY($_PosX, $_PosY);
+        $this->_PosX = $this->_Margin_Left + $this->_COUNTX*($this->_Width+$this->_X_Space) + $this->_Padding;
+        $this->_PosY = $this->_Margin_Top + $this->_COUNTY*($this->_Height+$this->_Y_Space) + $this->_Padding;
+        $this->SetXY($this->_PosX, $this->_PosY);
         $this->MultiCell($this->_Width - $this->_Padding, $this->_Line_Height, $text, 0, 'L');
     }
 
-    function _putcatalog()
-    {
+    function currentLabel($text, $align = 'L') {
+        $this->SetXY($this->_PosX, $this->_PosY);
+        $this->MultiCell($this->_Width - $this->_Padding, $this->_Line_Height, $text, 0, $align);
+    }
+
+    function writeQRCode($text, $align = 'L', $eclevel = 'L') {
+        $qrcode = new QRCode($text, $eclevel);
+        $arrcode = $qrcode->getBarcodeArray();
+        $rows = $arrcode['num_rows'] ?? 0;
+        $cols = $arrcode['num_cols'] ?? 0;
+        if ($rows == 0 || $cols == 0) {
+            error_log("writeQRCode failed for text: $text");
+            return;
+        }
+
+        $mw = $mh = 1;     // scale factor
+        $hpad = $vpad = 0; // padding
+
+        $w = ($cols + $hpad) * ($mw / $this->k);
+        $h = ($rows + $vpad) * ($mh / $this->k);
+        $bw = ($w * $cols) / ($cols + $hpad);
+        $bh = ($h * $rows) / ($rows + $vpad);
+        $cw = $bw / $cols;
+        $ch = $bh / $rows;
+
+        switch($align) {
+        case 'L':
+            $xpos = $this->_PosX;
+            break;
+        case 'C':
+            $xpos = $this->_PosX + ($this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 - $w) / 2;
+            break;
+        case 'R':
+            $xpos = $this->_PosX + $this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 - $w;
+            break;
+        default:
+            $xpos = $this->x;
+            break;
+        }
+
+        $xstart = $xpos;
+        $ystart = $this->_PosY - 1;
+
+        $this->SetXY($this->_PosX, $this->_PosY);
+
+        for ($r = 0; $r < $rows; $r++) {
+            $xr = $xstart;
+            // for each column
+            for ($c = 0; $c < $cols; $c++) {
+                if ($arrcode['bcode'][$r][$c] == 1) {
+                    // draw a single barcode cell
+                    $this->Rect($xr, $ystart, $cw, $ch, 'F');
+                }
+                $xr += $cw;
+            }
+            $ystart += $ch;
+        }
+    }
+
+    function _putcatalog() {
         parent::_putcatalog();
         // Disable the page scaling option in the printing dialog
         $this->_put('/ViewerPreferences <</PrintScaling /None>>');
