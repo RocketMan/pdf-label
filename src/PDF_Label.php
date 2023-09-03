@@ -210,7 +210,7 @@ class PDF_Label extends tFPDF {
     }
 
     function writeQRCode($text, $align = 'L', $eclevel = 'L') {
-        $qrcode = new QRCode($text, $eclevel);
+        $qrcode = new QRcode($text, $eclevel);
         $arrcode = $qrcode->getBarcodeArray();
         $rows = $arrcode['num_rows'] ?? 0;
         $cols = $arrcode['num_cols'] ?? 0;
