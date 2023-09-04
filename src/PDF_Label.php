@@ -184,6 +184,10 @@ class PDF_Label extends tFPDF {
         $this->SetFontSize($pt);
     }
 
+    function SetLineHeight($pt) {
+        $this->_Line_Height = $this->_Get_Height_Chars($pt);
+    }
+
     // Print a label
     function Add_Label($text) {
         $this->_COUNTX++;
@@ -206,7 +210,7 @@ class PDF_Label extends tFPDF {
 
     function currentLabel($text, $align = 'L') {
         $this->SetXY($this->_PosX, $this->_PosY);
-        $this->MultiCell($this->_Width - $this->_Padding, $this->_Line_Height, $text, 0, $align);
+        $this->MultiCell($this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 + 1, $this->_Line_Height, $text, 0, $align);
     }
 
     function writeQRCode($text, $align = 'L', $eclevel = 'L') {
