@@ -44,7 +44,7 @@
 //      + Migrated from FPDF to tFPDF (for unicode and ttf)
 //      + Added optional orientation property to format descriptor
 // 1.6+rocketman.2:
-//      + Added new methods `currentLabel` and `writeQRCode`
+//      + Added new methods: currentLabel, verticalText, writeQRCode
 //////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -213,6 +213,37 @@ class PDF_Label extends tFPDF {
         $this->MultiCell($this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 + 1, $this->_Line_Height, $text, 0, $align);
     }
 
+    function verticalText($text, $x, $y, $align = 'D') {
+        switch($align) {
+        case 'U':
+            $ord = [0, 1, -1, 0];
+            break;
+        case 'D':
+        default:
+            $ord = [0, -1, 1, 0];
+            break;
+        }
+
+        foreach($this->UTF8StringToArray($text) as $uni)
+            $this->CurrentFont['subset'][$uni] = $uni;
+
+        // y offset biased by -1 for symmetry with writeQRCode
+        $x1 = $this->_PosX + $x;
+        $y1 = $this->_PosY + $y - 1;
+
+        // negative coordinates position from the right/bottom
+        if($x < 0)
+            $x1 += $this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 - 1;
+        if($y < 0)
+            $y1 += $this->_Height - $this->_Padding;
+
+        $cmd = sprintf('BT %.2F %.2F %.2F %.2F %.2F %.2F Tm (%s) Tj ET',
+                   $ord[0], $ord[1], $ord[2], $ord[3],
+                   $x1 * $this->k, ($this->h - $y1) * $this->k,
+                   $this->_escape($this->UTF8ToUTF16BE($text, false)));
+        $this->_out($cmd);
+    }
+
     function writeQRCode($text, $align = 'L', $eclevel = 'L') {
         $qrcode = new QRcode($text, $eclevel);
         $arrcode = $qrcode->getBarcodeArray();
@@ -250,8 +281,6 @@ class PDF_Label extends tFPDF {
 
         $xstart = $xpos;
         $ystart = $this->_PosY - 1;
-
-        $this->SetXY($this->_PosX, $this->_PosY);
 
         for ($r = 0; $r < $rows; $r++) {
             $xr = $xstart;
