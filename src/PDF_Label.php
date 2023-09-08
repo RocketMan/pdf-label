@@ -45,7 +45,8 @@
 //      + Added optional orientation property to format descriptor
 // 1.6+rocketman.2:
 //      + No longer set default font
-//      + Added new methods: currentLabel, verticalText, writeQRCode
+//      + Added new methods: currentLabel, verticalText, writeQRCode,
+//        scrubText, SetLineHeight
 //////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -186,6 +187,25 @@ class PDF_Label extends tFPDF {
 
     function SetLineHeight($pt) {
         $this->_Line_Height = $this->_Get_Height_Chars($pt);
+    }
+
+    /**
+     * remove codepoints with no glyph in the current font
+     *
+     * @param $text text to scrub
+     * @param $substitute string to substitute for codepoint (default empty)
+     * @returns text with glyphless codepoints removed
+     */
+    function scrubText($text, $substitute = '') {
+        if($this->unifontSubset) {
+            $cw = $this->CurrentFont['cw'];
+            foreach($this->UTF8StringToArray($text) as $char) {
+                if($char >= 128 && (ord($cw[2*$char] ?? 0) << 8) + ord($cw[2*$char+1] ?? 0) == 0)
+                    $text = preg_replace('/' . mb_chr($char) . '/u', $substitute, $text);
+            }
+        }
+
+        return $text;
     }
 
     // Print a label
