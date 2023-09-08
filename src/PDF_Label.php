@@ -44,6 +44,7 @@
 //      + Migrated from FPDF to tFPDF (for unicode and ttf)
 //      + Added optional orientation property to format descriptor
 // 1.6+rocketman.2:
+//      + No longer set default font
 //      + Added new methods: currentLabel, verticalText, writeQRCode
 //////////////////////////////////////////////////////////////////////////////
 
@@ -136,7 +137,6 @@ class PDF_Label extends tFPDF {
         parent::__construct($orientation, $unit, $Tformat['paper-size']);
         $this->_Metric_Doc = $unit;
         $this->_Set_Format($Tformat);
-        $this->SetFont('Arial');
         $this->SetMargins(0,0); 
         $this->SetAutoPageBreak(false); 
         $this->_COUNTX = $posX-2;
@@ -208,13 +208,27 @@ class PDF_Label extends tFPDF {
         $this->MultiCell($this->_Width - $this->_Padding, $this->_Line_Height, $text, 0, 'L');
     }
 
+    /**
+     * render additional text in the current label
+     *
+     * @param $text text to render
+     * @param $align one of 'L' (left), 'C' (centre), 'R' (right)
+     */
     function currentLabel($text, $align = 'L') {
         $this->SetXY($this->_PosX, $this->_PosY);
         $this->MultiCell($this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 + 1, $this->_Line_Height, $text, 0, $align);
     }
 
-    function verticalText($text, $x, $y, $align = 'D') {
-        switch($align) {
+    /**
+     * render vertical text in the current label
+     *
+     * @param $text text to render
+     * @param $x offset from left (positive) or right (negative) of label
+     * @param $y offset from top (positive) or bottom (negative) of label
+     * @param $direction one of 'D' (down, default) or 'U' (up)
+     */
+    function verticalText($text, $x, $y, $direction = 'D') {
+        switch($direction) {
         case 'U':
             $ord = [0, 1, -1, 0];
             break;
@@ -244,7 +258,18 @@ class PDF_Label extends tFPDF {
         $this->_out($cmd);
     }
 
-    function writeQRCode($text, $align = 'L', $eclevel = 'L') {
+    /**
+     * render QR Code in the current label
+     *
+     * $eclevel sets how tolerant the QR code is to errors.  Values range
+     * from low (the default) to high.  Higher levels mean larger QR codes.
+     *
+     * @param $text content
+     * @param $align one of 'L' (left, default), 'C' (centre), or 'R' (right)
+     * @param $y offset from top (positive) or bottom (negative) (default 0)
+     * @param $eclevel one of 'L' (low, default), 'M', 'Q', or 'H' (best)
+     */
+    function writeQRCode($text, $align = 'L', $y = 0, $eclevel = 'L') {
         $qrcode = new QRcode($text, $eclevel);
         $arrcode = $qrcode->getBarcodeArray();
         $rows = $arrcode['num_rows'] ?? 0;
@@ -280,7 +305,10 @@ class PDF_Label extends tFPDF {
         }
 
         $xstart = $xpos;
-        $ystart = $this->_PosY - 1;
+        $ystart = $this->_PosY + $y - 1;
+
+        if($y < 0)
+            $ystart += $this->_Height - $this->_Padding;
 
         for ($r = 0; $r < $rows; $r++) {
             $xr = $xstart;

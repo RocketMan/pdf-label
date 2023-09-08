@@ -18,7 +18,7 @@ or you can include the following in your `composer.json` file:
 ```json
 {
     "require": {
-        "rocketman/pdf-label": "1.6+rocketman.2"
+        "rocketman/pdf-label": "^1.6+rocketman.2"
     }
 }
 ```
@@ -34,6 +34,7 @@ $pdf->AddPage();
 $pdf->Add_Label("label content here");
 $pdf->Add_Label("second label");
 $pdf->currentLabel("more content for current label");
+$pdf->verticalText("vertical text for current label", -1, 0, 'D');
 $pdf->writeQRCode("https://www.ibinx.com/", "R");
 $pdf->Output();
 ```
