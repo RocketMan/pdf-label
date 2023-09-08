@@ -209,7 +209,7 @@ class PDF_Label extends tFPDF {
     }
 
     // Print a label
-    function Add_Label($text) {
+    function Add_Label($text, $scrub = ' ') {
         $this->_COUNTX++;
         if ($this->_COUNTX == $this->_X_Number) {
             // Row full, we start a new one
@@ -225,6 +225,8 @@ class PDF_Label extends tFPDF {
         $this->_PosX = $this->_Margin_Left + $this->_COUNTX*($this->_Width+$this->_X_Space) + $this->_Padding;
         $this->_PosY = $this->_Margin_Top + $this->_COUNTY*($this->_Height+$this->_Y_Space) + $this->_Padding;
         $this->SetXY($this->_PosX, $this->_PosY);
+        if($scrub !== false)
+            $text = $this->scrubText($text, $scrub);
         $this->MultiCell($this->_Width - $this->_Padding, $this->_Line_Height, $text, 0, 'L');
     }
 
@@ -233,9 +235,12 @@ class PDF_Label extends tFPDF {
      *
      * @param $text text to render
      * @param $align one of 'L' (left), 'C' (centre), 'R' (right)
+     * @param $scrub scrub unknown codepoints with this string or false
      */
-    function currentLabel($text, $align = 'L') {
+    function currentLabel($text, $align = 'L', $scrub = ' ') {
         $this->SetXY($this->_PosX, $this->_PosY);
+        if($scrub !== false)
+            $text = $this->scrubText($text, $scrub);
         $this->MultiCell($this->_Width - $this->_Padding * 2 - $this->_Margin_Left * 2 + 1, $this->_Line_Height, $text, 0, $align);
     }
 
