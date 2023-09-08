@@ -238,8 +238,11 @@ class PDF_Label extends tFPDF {
             break;
         }
 
-        foreach($this->UTF8StringToArray($text) as $uni)
-            $this->CurrentFont['subset'][$uni] = $uni;
+        if($this->unifontSubset) {
+            foreach($this->UTF8StringToArray($text) as $uni)
+                $this->CurrentFont['subset'][$uni] = $uni;
+            $text = $this->UTF8ToUTF16BE($text, false);
+        }
 
         // y offset biased by -1 for symmetry with writeQRCode
         $x1 = $this->_PosX + $x;
@@ -254,7 +257,7 @@ class PDF_Label extends tFPDF {
         $cmd = sprintf('BT %.2F %.2F %.2F %.2F %.2F %.2F Tm (%s) Tj ET',
                    $ord[0], $ord[1], $ord[2], $ord[3],
                    $x1 * $this->k, ($this->h - $y1) * $this->k,
-                   $this->_escape($this->UTF8ToUTF16BE($text, false)));
+                   $this->_escape($text));
         $this->_out($cmd);
     }
 
