@@ -190,17 +190,18 @@ class PDF_Label extends tFPDF {
     }
 
     /**
-     * remove codepoints with no glyph in the current font
+     * replace codepoints with no glyph in the current font
      *
      * @param $text text to scrub
      * @param $substitute string to substitute for codepoint (default empty)
-     * @returns text with glyphless codepoints removed
+     * @returns text with glyphless codepoints replaced
      */
     function scrubText($text, $substitute = '') {
-        if($this->unifontSubset) {
-            $cw = $this->CurrentFont['cw'];
+        if($this->unifontSubset &&
+                ($cw = $this->CurrentFont['cw']) &&
+                strlen($cw) == 0x10000 * 2) {
             foreach($this->UTF8StringToArray($text) as $char) {
-                if($char >= 128 && (ord($cw[2*$char] ?? 0) << 8) + ord($cw[2*$char+1] ?? 0) == 0)
+                if($char >= 128 && !ord($cw[2*$char]) && !ord($cw[2*$char+1]))
                     $text = preg_replace('/' . mb_chr($char) . '/u', $substitute, $text);
             }
         }
