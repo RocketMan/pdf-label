@@ -295,10 +295,11 @@ class PDF_Label extends tFPDF {
      *
      * @param $text content
      * @param $align one of 'L' (left, default), 'C' (centre), or 'R' (right)
+     * @param $scale scale factor (default 1.0)
      * @param $y offset from top (positive) or bottom (negative) (default 0)
      * @param $eclevel one of 'L' (low, default), 'M', 'Q', or 'H' (best)
      */
-    function writeQRCode($text, $align = 'L', $y = 0, $eclevel = 'L') {
+    function writeQRCode($text, $align = 'L', $scale = 1, $y = 0, $eclevel = 'L') {
         $qrcode = new QRcode($text, $eclevel);
         $arrcode = $qrcode->getBarcodeArray();
         $rows = $arrcode['num_rows'] ?? 0;
@@ -308,8 +309,8 @@ class PDF_Label extends tFPDF {
             return;
         }
 
-        $mw = $mh = 1;     // scale factor
-        $hpad = $vpad = 0; // padding
+        $mw = $mh = $scale; // scale factor
+        $hpad = $vpad = 0;  // padding
 
         $w = ($cols + $hpad) * ($mw / $this->k);
         $h = ($rows + $vpad) * ($mh / $this->k);
