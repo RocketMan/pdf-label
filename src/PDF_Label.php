@@ -47,6 +47,9 @@
 //      + No longer set default font
 //      + Added new methods: currentLabel, verticalText, writeQRCode,
 //        scrubText, SetLineHeight
+// 1.6+rocketman.3:
+//      + Fixed typo in declaration of property _PosY
+//      + Bumped minimum version of tfpdf to 1.33
 //////////////////////////////////////////////////////////////////////////////
 
 /**

@@ -18,7 +18,7 @@ or you can include the following in your `composer.json` file:
 ```json
 {
     "require": {
-        "rocketman/pdf-label": "^1.6+rocketman.2"
+        "rocketman/pdf-label": "^1.6+rocketman.3"
     }
 }
 ```
