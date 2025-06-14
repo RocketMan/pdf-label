@@ -73,7 +73,7 @@ class PDF_Label extends tFPDF {
     protected $_COUNTX;             // Current x position
     protected $_COUNTY;             // Current y position
     protected $_PosX;               // tFPDF x origin for current label
-    protected $_PoxY;               // tFPDF y origin for current label
+    protected $_PosY;               // tFPDF y origin for current label
 
     // List of label formats
     protected $_Avery_Labels = array(
